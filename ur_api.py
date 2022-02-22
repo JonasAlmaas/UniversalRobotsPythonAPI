@@ -53,8 +53,8 @@ class Pose:
 class UniversalRobot:
 
     def __init__(self):
-        self._accel = 1.0
-        self._vel = 1.0
+        self._accel = 1.5
+        self._vel = 1.5
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--host', default=HOST,help='name of host to connect to (localhost)')
