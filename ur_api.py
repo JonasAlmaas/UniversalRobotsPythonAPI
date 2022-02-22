@@ -38,6 +38,9 @@ class Pose:
         '''Returns a string for the pose.'''
         return "movej(p[" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v) + ")\n"
 
+    def copy(self):
+        return Pose(x=self.x, y=self.y, z=self.z, rx=self.rx, ry=self.ry, rz=self.rz)
+
     def __eq__(self, other):
         if (isinstance(other, Pose)):
             return (self.x == other.x) and (self.y == other.y) and (self.z == other.z)
