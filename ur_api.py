@@ -43,6 +43,7 @@ class Pose:
 
     def __eq__(self, other):
         if (isinstance(other, Pose)):
+            # return (self.x == other.x) and (self.y == other.y) and (self.z == other.z) and (self.rx == other.rx) and (self.ry == other.ry) and (self.rz == other.rz)
             return (self.x == other.x) and (self.y == other.y) and (self.z == other.z)
         return False
     
