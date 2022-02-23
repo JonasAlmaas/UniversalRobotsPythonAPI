@@ -1,10 +1,11 @@
 import argparse
 import socket
 import time
+import os
 
 import logging
-import rtde.rtde as rtde
-import rtde.rtde_config as rtde_config
+from .rtde import rtde
+from .rtde import rtde_config
 
 
 HOST = "192.168.1.101"
@@ -62,7 +63,7 @@ class UniversalRobot:
         parser.add_argument('--port', type=int, default=PORT_RECEIVE, help='port number (30004)')
         parser.add_argument('--samples', type=int, default=0,help='number of samples to record')
         parser.add_argument('--frequency', type=int, default=125, help='the sampling frequency in Herz')
-        parser.add_argument('--config', default=CONFIG, help='data configuration file to use (record_configuration.xml)')
+        parser.add_argument('--config', default=os.path.join(os.path.dirname(__file__), CONFIG), help='data configuration file to use (record_configuration.xml)')
         parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
         parser.add_argument("--buffered", help="Use buffered receive which doesn't skip data", action="store_true")
         parser.add_argument("--binary", help="save the data in binary format", action="store_true")
@@ -76,7 +77,7 @@ class UniversalRobot:
         s.connect((HOST, PORT_SEND))
         s.send(function_str.encode())
         s.close()
-        
+
     def set_accel(self, accel: float):
         '''Sets the acceleration for the robot.'''
         self._accel = accel
