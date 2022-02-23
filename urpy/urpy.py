@@ -24,13 +24,13 @@ class Pose:
         self.rz = round(rz, 2)
 
     def to_m(self):
-        '''Converts from m to mm.'''
+        '''Converts from mm to m.'''
         self.x = self.x / 1000.0
         self.y = self.y / 1000.0
         self.z = self.z / 1000.0
     
     def to_mm(self):
-        '''Converts from mm to m.'''
+        '''Converts from m to mm.'''
         self.x = round(self.x * 1000.0)
         self.y = round(self.y * 1000.0)
         self.z = round(self.z * 1000.0)
