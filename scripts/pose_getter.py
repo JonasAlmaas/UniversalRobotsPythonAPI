@@ -19,7 +19,7 @@ def on_mouse_click(x, y, button, pressed):
     if pressed:
         if button == Button.middle:
             pose = robot.get_pose()
-            print("Pose(x=" + str(pose.x) + ", y=" + str(pose.y) + ", z=" + str(pose.z) + ", rx=" + str(pose.rx) + ", ry=" + str(pose.ry) + ", rz" + str(pose.rz) + ")")
+            print(pose.to_declaration())
         
         if button == Button.left:
             robot.set_freedrive(state=False)

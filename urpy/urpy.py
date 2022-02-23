@@ -35,6 +35,10 @@ class Pose:
         self.y = round(self.y * 1000.0)
         self.z = round(self.z * 1000.0)
 
+    def to_declaration(self):
+        '''Returns the declaration of the pose.'''
+        return "Pose(x=" + str(self.x) + ", y=" + str(self.y) + ", z=" + str(self.z) + ", rx=" + str(self.rx) + ", ry=" + str(self.ry) + ", rz=" + str(self.rz) + ")"
+
     def movej(self, a, v) -> str:
         '''Returns a string for the pose.'''
         return "movej(p[" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v) + ")\n"
