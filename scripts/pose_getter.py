@@ -11,7 +11,7 @@ sys.path.insert(1, p)
 
 from urpy import urpy
 
-robot = urpy.UniversalRobot()
+robot = urpy.UniversalRobot("192.168.1.101")
 
 robot.set_freedrive(state=True)
 

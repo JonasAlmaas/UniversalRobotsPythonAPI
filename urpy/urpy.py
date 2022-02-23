@@ -8,13 +8,13 @@ from .rtde import rtde
 from .rtde import rtde_config
 
 
-HOST = "192.168.1.101"
 PORT_SEND = 30002
 PORT_RECEIVE = 30004
 CONFIG = "configuration.xml"
 
 
 class Pose:
+    '''A wrapper around an arm pose.'''
     def __init__(self, x=0.0, y=0.0, z=0.0, rx=0.0, ry=0.0, rz=0.0):
         self.x = x
         self.y = y
@@ -58,12 +58,13 @@ class Pose:
 
 class UniversalRobot:
 
-    def __init__(self):
+    def __init__(self, host_ip: str):
+        self._host = host_ip
         self._accel = 1.5
         self._vel = 1.5
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--host', default=HOST,help='name of host to connect to (localhost)')
+        parser.add_argument('--host', default=self._host,help='name of host to connect to (localhost)')
         parser.add_argument('--port', type=int, default=PORT_RECEIVE, help='port number (30004)')
         parser.add_argument('--samples', type=int, default=0,help='number of samples to record')
         parser.add_argument('--frequency', type=int, default=125, help='the sampling frequency in Herz')
@@ -78,7 +79,7 @@ class UniversalRobot:
 
     def send_to_robot(self, function_str: str):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST, PORT_SEND))
+        s.connect((self._host, PORT_SEND))
         s.send(function_str.encode())
         s.close()
 

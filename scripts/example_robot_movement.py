@@ -13,7 +13,7 @@ class Pose:
     camera = urpy.Pose(1003, -180, 1244, -1.48, 1.0, -1.51)
 
 
-robot = urpy.UniversalRobot()
+robot = urpy.UniversalRobot("192.168.1.101")
 
 robot.move_to(target_pose=Pose.pose1, wait=True)
 robot.move_to(target_pose=Pose.pose2, wait=True)
