@@ -1,4 +1,4 @@
-import ur_api as ur
+import urpy as ur
 
 
 class Pose:

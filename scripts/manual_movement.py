@@ -1,7 +1,7 @@
-import ur_api as ur
+import urpy as urpy
 
 
-robot = ur.UniversalRobot()
+robot = urpy.UniversalRobot()
 
 input_str = ""
 

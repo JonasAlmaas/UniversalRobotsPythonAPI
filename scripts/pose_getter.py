@@ -3,9 +3,9 @@
 
 from pynput.mouse import Listener, Button
 
-import ur_api as ur
+import urpy as urpy
 
-robot = ur.UniversalRobot()
+robot = urpy.UniversalRobot()
 robot.set_freedrive(state=True)
 
 def on_mouse_click(x, y, button, pressed):
