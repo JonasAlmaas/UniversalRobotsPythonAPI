@@ -4,7 +4,7 @@ import sys
 p = os.path.abspath('.')
 sys.path.insert(1, p)
 
-import urpy as urpy
+from urpy import urpy
 
 
 robot = urpy.UniversalRobot()

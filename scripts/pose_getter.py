@@ -1,5 +1,6 @@
 # Middle mouse to get pose
 # Left mouse to end program
+
 import os
 import sys
 
@@ -8,7 +9,7 @@ from pynput.mouse import Listener, Button
 p = os.path.abspath('.')
 sys.path.insert(1, p)
 
-import urpy as urpy
+from urpy import urpy
 
 robot = urpy.UniversalRobot()
 
