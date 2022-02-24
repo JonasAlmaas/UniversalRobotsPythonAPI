@@ -20,7 +20,7 @@ while input_str != "q":
 
     elif input_str.find("x") == 0:
         input_str = input_str.replace("x", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.x += int(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
@@ -28,7 +28,7 @@ while input_str != "q":
 
     elif input_str.find("y") == 0:
         input_str = input_str.replace("y", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.y += int(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
@@ -36,7 +36,7 @@ while input_str != "q":
     
     elif input_str.find("z") == 0:
         input_str = input_str.replace("z", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.z += int(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
@@ -44,7 +44,7 @@ while input_str != "q":
             
     elif input_str.find("rx") == 0:
         input_str = input_str.replace("rx", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.rx += float(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
@@ -52,7 +52,7 @@ while input_str != "q":
 
     elif input_str.find("ry") == 0:
         input_str = input_str.replace("ry", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.ry += float(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
@@ -60,7 +60,7 @@ while input_str != "q":
     
     elif input_str.find("rz") == 0:
         input_str = input_str.replace("rz", "")
-        if input_str.find("+") == 0:
+        if input_str.find("+") == 0 or input_str.find("-") == 0:
             pose.rz += float(input_str)
         elif input_str.find("=") == 0:
             input_str = input_str.replace("=", "")
