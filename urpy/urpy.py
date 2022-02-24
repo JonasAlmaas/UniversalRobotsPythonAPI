@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import socket
 import time
@@ -18,6 +20,10 @@ CONFIG = "configuration.xml"
 class MovementType(Enum):
     LINEAR = auto()
     QUICKEST = auto()
+
+
+def lerp(a, b, percent) -> float:
+    return a + ((b - a) * percent)
 
 
 class Pose:
@@ -56,8 +62,18 @@ class Pose:
     def movel(self, a, v) -> str:
         '''Returns a string for the pose.'''
         return "movel(" + self.get_undefined_move_command(a, v) + ")\n"
+    
+    def lerp(self, other: Pose, percent: float) -> Pose:
+        '''Returns a linear interpolated pose.'''
+        x = lerp(self.x, other.x, percent)
+        y = lerp(self.y, other.y, percent)
+        z = lerp(self.z, other.z, percent)
+        rx = lerp(self.rx, other.rx, percent)
+        ry = lerp(self.ry, other.ry, percent)
+        rz = lerp(self.rz, other.rz, percent)
+        return Pose(x, y, z, rx, ry, rz)
 
-    def copy(self):
+    def copy(self) -> Pose:
         return Pose(x=self.x, y=self.y, z=self.z, rx=self.rx, ry=self.ry, rz=self.rz)
 
     def __eq__(self, other):
