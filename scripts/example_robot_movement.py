@@ -15,8 +15,8 @@ class Pose:
 
 robot = urpy.UniversalRobot("192.168.1.101")
 
-robot.move_to(target_pose=Pose.pose1, wait=True)
-robot.move_to(target_pose=Pose.pose2, wait=True)
-robot.move_to(target_pose=Pose.camera, wait=True)
-robot.move_to(target_pose=Pose.pose2, wait=True)
-robot.move_to(target_pose=Pose.pose1, wait=True)
+robot.move_to(target_pose=Pose.pose1)
+robot.move_to(target_pose=Pose.pose2)
+robot.move_to(target_pose=Pose.camera)
+robot.move_to(target_pose=Pose.pose2)
+robot.move_to(target_pose=Pose.pose1)

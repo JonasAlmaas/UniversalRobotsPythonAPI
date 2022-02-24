@@ -3,6 +3,8 @@ import socket
 import time
 import os
 
+from enum import Enum, auto
+
 import logging
 from .rtde import rtde
 from .rtde import rtde_config
@@ -11,6 +13,11 @@ from .rtde import rtde_config
 PORT_SEND = 30002
 PORT_RECEIVE = 30004
 CONFIG = "configuration.xml"
+
+
+class MovementType(Enum):
+    LINEAR = auto()
+    QUICKEST = auto()
 
 
 class Pose:
@@ -39,9 +46,16 @@ class Pose:
         '''Returns the declaration of the pose.'''
         return "Pose(x=" + str(self.x) + ", y=" + str(self.y) + ", z=" + str(self.z) + ", rx=" + str(self.rx) + ", ry=" + str(self.ry) + ", rz=" + str(self.rz) + ")"
 
+    def get_undefined_move_command(self, a, v):
+        return "p[" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v)
+
     def movej(self, a, v) -> str:
         '''Returns a string for the pose.'''
-        return "movej(p[" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v) + ")\n"
+        return "movej(" + self.get_undefined_move_command(a, v) + ")\n"
+
+    def movel(self, a, v) -> str:
+        '''Returns a string for the pose.'''
+        return "movel(" + self.get_undefined_move_command(a, v) + ")\n"
 
     def copy(self):
         return Pose(x=self.x, y=self.y, z=self.z, rx=self.rx, ry=self.ry, rz=self.rz)
@@ -91,11 +105,17 @@ class UniversalRobot:
         '''Sets the velcoity for the robot.'''
         self._vel = vel
 
-    def move_to(self, target_pose: Pose, wait=True):
+    def move_to(self, target_pose: Pose, movement_type: MovementType = MovementType.QUICKEST, wait=True):
         '''Moves the robot to the desiered pose, waits before continuing if the 'wait' flag is set.'''
         target_pose.to_m()
 
-        self.send_to_robot(target_pose.movej(self._accel, self._vel))
+        if movement_type is MovementType.LINEAR:
+            self.send_to_robot(target_pose.movel(self._accel, self._vel))
+        elif movement_type is MovementType.QUICKEST:
+            self.send_to_robot(target_pose.movej(self._accel, self._vel))
+        else:
+            print("Unknown movement type")
+            return
 
         if wait:
             target_pose.to_mm()
