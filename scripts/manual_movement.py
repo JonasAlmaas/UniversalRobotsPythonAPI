@@ -9,6 +9,9 @@ from urpy import urpy
 
 robot = urpy.UniversalRobot("192.168.1.101")
 
+robot.set_accel(0.5)
+robot.set_vel(0.5)
+
 input_str = ""
 
 while input_str != "q":
