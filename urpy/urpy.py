@@ -44,9 +44,9 @@ class Pose:
     
     def to_mm(self):
         '''Converts from m to mm.'''
-        self.x = round(self.x * 1000.0)
-        self.y = round(self.y * 1000.0)
-        self.z = round(self.z * 1000.0)
+        self.x = round(self.x * 1000.0, 1)
+        self.y = round(self.y * 1000.0, 1)
+        self.z = round(self.z * 1000.0, 1)
 
     def to_declaration(self):
         '''Returns the declaration of the pose.'''
