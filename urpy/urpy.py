@@ -24,9 +24,8 @@ class MovementType(Enum):
 
 
 class UniversalRobot:
-
+    '''A helper class to communicate with a Universal Robot.'''
     def __init__(self, host_ip: str) -> None:
-        '''A helper class to comunicate with a Universal Robot.'''
         self._host: str = host_ip
         self._accel: float = 1.5
         self._vel: float = 1.5
