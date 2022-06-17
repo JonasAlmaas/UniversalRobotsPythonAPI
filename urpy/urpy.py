@@ -81,6 +81,17 @@ class UniversalRobot:
                 if not is_at_positon:
                     time.sleep(0.1)
 
+    def move_to_joint_pos(self, target: JointPosition, wait: bool = True) -> None:
+        self.send_to_robot(target.movej(self._accel, self._vel))
+
+        if wait:
+            is_at_positon = False
+            while not is_at_positon:
+                current_pos = self.get_joint_position()
+                is_at_positon = target == current_pos
+                if not is_at_positon:
+                    time.sleep(0.1)
+
     def get_pose(self) -> Pose:
         '''Get the robots correct pose as an instance of the Pose class.'''
         conf = rtde_config.ConfigFile(self._args.config)
@@ -110,6 +121,34 @@ class UniversalRobot:
         pose.to_mm()
 
         return pose
+    
+    def get_joint_position(self) -> JointPosition:
+        conf = rtde_config.ConfigFile(self._args.config)
+        output_names, output_types = conf.get_recipe('out')
+
+        con = rtde.RTDE(self._args.host, self._args.port)
+        con.connect()
+
+        con.get_controller_version()
+        con.send_output_setup(output_names, output_types, frequency=self._args.frequency)
+        con.send_start()
+
+        if self._args.buffered:
+            state = con.receive_buffered(self._args.binary)
+        else:
+            state = con.receive(self._args.binary)
+
+        if state is not None:
+            base, shoulder, elbow, wrist1, wrist2, wrist3 = state.actual_q
+        else:
+            print("[urpy][ERROR]: Failed to get joint position!")
+
+        con.send_pause()
+        con.disconnect()
+
+        joint_position = JointPosition(base, shoulder, elbow, wrist1, wrist2, wrist3)
+
+        return joint_position
     
     def set_freedrive(self, state=True) -> None:
         '''Sets the robot in freedrive mode until another request is sent.'''
@@ -183,6 +222,41 @@ class Pose:
     
     def __str__(self):
         return "X: " + str(self.x) + ", Y: " + str(self.y) + ", Z: " + str(self.z) + ", rX: " + str(self.rx) + ", rY: " + str(self.ry) + ", rZ: " + str(self.rz)
+
+
+class JointPosition:
+    '''A wrapper around a joint position. Defined in radians!'''
+    def __init__(self, base : float, shoulder : float, elbow : float, wrist1 : float, wrist2 : float, wrist3 : float) -> None:
+        self.base: float = round(base, 3)
+        self.shoulder: float = round(shoulder, 3)
+        self.elbow: float = round(elbow, 3)
+        self.wrist1: float = round(wrist1, 3)
+        self.wrist2: float = round(wrist2, 3)
+        self.wrist3: float = round(wrist3, 3)
+
+    def to_declaration(self) -> str:
+        '''Returns the declaration of the joint position.'''
+        return "JointPosition(base=" + str(self.base) + ", shoulder=" + str(self.shoulder) + ", elbow=" + str(self.elbow) + ", wrist1=" + str(self.wrist1) + ", wrist2=" + str(self.wrist2) + ", wrist3=" + str(self.wrist3) + ")"
+
+    def _get_undefined_move_command(self, a, v) -> str:
+        '''Helper function for sending a pose to the robot.'''
+        return "[" + str(self.base) + ", " + str(self.shoulder) + ", " + str(self.elbow) + ", " + str(self.wrist1) + ", " + str(self.wrist2) + ", " + str(self.wrist3) + "],a=" + str(a) + ", v=" +str(v)
+
+    def movej(self, a, v) -> str:
+        '''Returns a function string for the joint position.'''
+        return "movej(" + self._get_undefined_move_command(a, v) + ")\n"
+
+    def copy(self) -> JointPosition:
+        '''Returns a copy of the joint position.'''
+        return JointPosition(self.base, self.shoulder, self.elbow, self.wrist1, self.wrist2, self.wrist3)
+
+    def __eq__(self, other):
+        if (isinstance(other, JointPosition)):
+            return (self.base == other.base) and (self.shoulder == other.shoulder) and (self.elbow == other.elbow) and (self.wrist1 == other.wrist1) and (self.wrist2 == other.wrist2) and (self.wrist3 == other.wrist3)
+        return False
+    
+    def __str__(self):
+        return "Base: " + str(self.base) + ", Shoulder: " + str(self.shoulder) + ", Elbow: " + str(self.elbow) + ", Wrist1: " + str(self.wrist1) + ", Wrist2: " + str(self.wrist2) + ", Wrist3: " + str(self.wrist3)
 
 
 def lerp(a: float, b: float, percent: float) -> float:
