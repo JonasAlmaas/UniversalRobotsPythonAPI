@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import argparse
-import socket
-import time
-import os
-
 from enum import Enum, auto
+from typing import Union, List
+
+import os
+import time
+import socket
+import argparse
 
 import logging
 from .rtde import rtde
@@ -44,12 +45,7 @@ class UniversalRobot:
         if self._args.verbose:
             logging.basicConfig(level=logging.INFO)
 
-    def send_to_robot(self, function_str: str) -> None:
-        '''Sends a function string to the robot.'''
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self._host, PORT_SEND))
-        s.send(function_str.encode())
-        s.close()
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def set_accel(self, accel: float) -> None:
         '''Sets the acceleration for the robot.'''
@@ -59,14 +55,31 @@ class UniversalRobot:
         '''Sets the velcoity for the robot.'''
         self._vel = vel
 
-    def move_to(self, target_pose: Pose, movement_type: MovementType = MovementType.QUICKEST, wait: bool = True) -> None:
+    def set_freedrive(self, state=True) -> None:
+        '''Sets the robot in freedrive mode until another request is sent.'''
+        function_str = None
+
+        if state:
+            function_str = "def prog():\nfreedrive_mode()\nsleep(99999999)\nend\nprog()"
+        else:
+            function_str = "end_freedrive_mode()\n"
+
+        self._send_to_robot(function_str)
+
+    def _send_to_robot(self, function_str: str) -> None:
+        '''Sends a function string to the robot.'''
+        self._socket.connect((self._host, PORT_SEND))
+        self._socket.send(function_str.encode())
+        self._socket.close() 
+
+    def move_to_pose(self, target_pose: Pose, movement_type: MovementType = MovementType.QUICKEST, wait: bool = True) -> None:
         '''Moves the robot to the desiered pose, waits before continuing if the 'wait' flag is set.'''
         target_pose.to_m()
 
         if movement_type is MovementType.LINEAR:
-            self.send_to_robot(target_pose.movel(self._accel, self._vel))
+            self._send_to_robot(target_pose.movel(self._accel, self._vel))
         elif movement_type is MovementType.QUICKEST:
-            self.send_to_robot(target_pose.movej(self._accel, self._vel))
+            self._send_to_robot(target_pose.movej(self._accel, self._vel))
         else:
             print("[urpy][ERROR]: Unknown movement type.")
             return
@@ -82,7 +95,8 @@ class UniversalRobot:
                     time.sleep(0.1)
 
     def move_to_joint_pos(self, target: JointPosition, wait: bool = True) -> None:
-        self.send_to_robot(target.movej(self._accel, self._vel))
+        '''Moves the robot to the desiered joint position, waits before continuing if the 'wait' flag is set.'''
+        self._send_to_robot(target.movej(self._accel, self._vel))
 
         if wait:
             is_at_positon = False
@@ -91,6 +105,39 @@ class UniversalRobot:
                 is_at_positon = target == current_pos
                 if not is_at_positon:
                     time.sleep(0.1)
+
+    def move_path(self, path_points: List[PathPoint]) -> None:
+        '''Given an array of PathPoints the robot moves smoothly between them with little delay. Waits before continuing.'''
+        self._socket.connect((self._host, PORT_SEND))
+
+        for point in path_points:
+            # Get the correct function string
+            if isinstance(point, JointPosition):
+                function_str = point.target.movej()
+            else:
+                point.target.to_m()
+                if point.movement_type == MovementType.QUICKEST:
+                    function_str = point.target.movej()
+                elif point.movement_type == MovementType.LINEAR:
+                    function_str = point.target.movel()
+
+            # Send the function string to the robot
+            self._socket.send(function_str.encode())
+
+            # Wait for the robot to complete the move
+            move_done = False
+            while not move_done:
+                if isinstance(point, JointPosition):
+                    current = self.get_joint_position()
+                else:
+                    point.target.to_mm()
+                    current = self.get_pose()
+
+                move_done = point.target == current
+                if not move_done:
+                    time.sleep(0.1)
+
+        self._socket.close() 
 
     def get_pose(self) -> Pose:
         '''Get the robots correct pose as an instance of the Pose class.'''
@@ -123,6 +170,7 @@ class UniversalRobot:
         return pose
     
     def get_joint_position(self) -> JointPosition:
+        '''Get the robots correct joint positions as an instance of the JointPosition class.'''
         conf = rtde_config.ConfigFile(self._args.config)
         output_names, output_types = conf.get_recipe('out')
 
@@ -149,17 +197,6 @@ class UniversalRobot:
         joint_position = JointPosition(base, shoulder, elbow, wrist1, wrist2, wrist3)
 
         return joint_position
-    
-    def set_freedrive(self, state=True) -> None:
-        '''Sets the robot in freedrive mode until another request is sent.'''
-        function_str = None
-
-        if state:
-            function_str = "def prog():\nfreedrive_mode()\nsleep(99999999)\nend\nprog()"
-        else:
-            function_str = "end_freedrive_mode()\n"
-
-        self.send_to_robot(function_str)
 
 
 class Pose:
@@ -226,7 +263,7 @@ class Pose:
 
 class JointPosition:
     '''A wrapper around a joint position. Defined in radians!'''
-    def __init__(self, base : float, shoulder : float, elbow : float, wrist1 : float, wrist2 : float, wrist3 : float) -> None:
+    def __init__(self, base: float, shoulder: float, elbow: float, wrist1: float, wrist2: float, wrist3: float) -> None:
         self.base: float = round(base, 3)
         self.shoulder: float = round(shoulder, 3)
         self.elbow: float = round(elbow, 3)
@@ -257,6 +294,12 @@ class JointPosition:
     
     def __str__(self):
         return "Base: " + str(self.base) + ", Shoulder: " + str(self.shoulder) + ", Elbow: " + str(self.elbow) + ", Wrist1: " + str(self.wrist1) + ", Wrist2: " + str(self.wrist2) + ", Wrist3: " + str(self.wrist3)
+
+
+class PathPoint:
+    def __init__(self, target: Union[Pose, JointPosition], movement_type: MovementType = MovementType.QUICKEST) -> None:
+        self.target: Union[Pose, JointPosition] = target
+        self.movement_type: MovementType = movement_type
 
 
 def lerp(a: float, b: float, percent: float) -> float:
