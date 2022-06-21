@@ -299,6 +299,16 @@ class JointPosition:
         '''Returns a function string for the joint position.'''
         return "movej(" + self._get_undefined_move_command(a, v) + ")\n"
 
+    def lerp(self, other: JointPosition, percent: float) -> Pose:
+        '''Returns a linear interpolated pose.'''
+        base = lerp(self.base, other.base, percent)
+        shoulder = lerp(self.shoulder, other.shoulder, percent)
+        elbow = lerp(self.elbow, other.elbow, percent)
+        wrist1 = lerp(self.wrist1, other.wrist1, percent)
+        wrist2 = lerp(self.wrist2, other.wrist2, percent)
+        wrist3 = lerp(self.wrist3, other.wrist3, percent)
+        return Pose(base, shoulder, elbow, wrist1, wrist2, wrist3)
+
     def copy(self) -> JointPosition:
         '''Returns a copy of the joint position.'''
         return JointPosition(self.base, self.shoulder, self.elbow, self.wrist1, self.wrist2, self.wrist3)
