@@ -235,9 +235,9 @@ class Pose:
         x = round(lerp(self.x, other.x, percent), 1)
         y = round(lerp(self.y, other.y, percent), 1)
         z = round(lerp(self.z, other.z, percent), 1)
-        rx = round(lerp(self.rx, other.rx, percent), 1)
-        ry = round(lerp(self.ry, other.ry, percent), 1)
-        rz = round(lerp(self.rz, other.rz, percent), 1)
+        rx = round(lerp(self.rx, other.rx, percent), 2)
+        ry = round(lerp(self.ry, other.ry, percent), 2)
+        rz = round(lerp(self.rz, other.rz, percent), 2)
         return Pose(x, y, z, rx, ry, rz)
 
     def copy(self) -> Pose:
