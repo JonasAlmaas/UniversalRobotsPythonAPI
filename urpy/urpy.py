@@ -71,37 +71,23 @@ class UniversalRobot:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self._host, PORT_SEND))
         s.send(function_str.encode())
-        s.close() 
+        s.close()
+    
+    def move_to(self, target: Union[Pose, JointPosition], movement_type: MovementType = MovementType.QUICKEST, wait: bool = True) -> None:
+        '''Moves the robot to the desiered pose or joint position, waits before continuing if the 'wait' flag is set.'''
+        if isinstance(target, Pose) and movement_type is MovementType.LINEAR:
+            self._send_to_robot(target.movel(self._accel, self._vel))
+        else :
+            self._send_to_robot(target.movej(self._accel, self._vel))
 
-    def move_to_pose(self, target_pose: Pose, movement_type: MovementType = MovementType.QUICKEST, wait: bool = True) -> None:
-        '''Moves the robot to the desiered pose, waits before continuing if the 'wait' flag is set.'''
-        if movement_type is MovementType.LINEAR:
-            self._send_to_robot(target_pose.movel(self._accel, self._vel))
-        elif movement_type is MovementType.QUICKEST:
-            self._send_to_robot(target_pose.movej(self._accel, self._vel))
-        else:
-            print("[urpy][ERROR]: Unknown movement type.")
-            return
-
+        # Wait for robot to reach the position
         if wait:
-            is_at_positon = False
-            while not is_at_positon:
-                current_pose = self.get_pose()
-                is_at_positon = target_pose == current_pose
-                if not is_at_positon:
-                    time.sleep(0.1)
-
-    def move_to_joint_pos(self, target: JointPosition, wait: bool = True) -> None:
-        '''Moves the robot to the desiered joint position, waits before continuing if the 'wait' flag is set.'''
-        self._send_to_robot(target.movej(self._accel, self._vel))
-
-        if wait:
-            is_at_positon = False
-            while not is_at_positon:
-                current_pos = self.get_joint_position()
-                is_at_positon = target == current_pos
-                if not is_at_positon:
-                    time.sleep(0.1)
+            move_done = False
+            while not move_done:
+                current = self.get_pose() if isinstance(target, Pose) else self.get_joint_position()
+                move_done = target == current
+                if not move_done:
+                    time.sleep(0.5)
 
     def move_path(self, path_points: List[PathPoint], wait: bool = True) -> None:
         '''Given an array of PathPoints the robot moves smoothly between them with little delay. Waits before continuing.'''
