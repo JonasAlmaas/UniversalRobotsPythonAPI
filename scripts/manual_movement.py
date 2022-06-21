@@ -1,10 +1,8 @@
 import os
 import sys
+sys.path.insert(1, os.path.abspath('.'))
 
-p = os.path.abspath('.')
-sys.path.insert(1, p)
-
-from urpy import urpy
+from program.robot_interface.urpy import urpy
 
 
 robot = urpy.UniversalRobot("192.168.1.101")
@@ -69,4 +67,5 @@ while input_str != "q":
             input_str = input_str.replace("=", "")
             pose.rz = float(input_str)
 
-    robot.move_to(target_pose=pose, wait=False)
+    print(pose)
+    robot.move_to(target=pose, wait=False)
