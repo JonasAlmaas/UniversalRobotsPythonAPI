@@ -307,7 +307,7 @@ class JointPosition:
         wrist1 = lerp(self.wrist1, other.wrist1, percent)
         wrist2 = lerp(self.wrist2, other.wrist2, percent)
         wrist3 = lerp(self.wrist3, other.wrist3, percent)
-        return Pose(base, shoulder, elbow, wrist1, wrist2, wrist3)
+        return JointPosition(base, shoulder, elbow, wrist1, wrist2, wrist3)
 
     def copy(self) -> JointPosition:
         '''Returns a copy of the joint position.'''
