@@ -19,11 +19,13 @@ class JointPosition:
 
 robot = urpy.UniversalRobot("192.168.1.101")
 
-robot.move_to_pose(target_pose=Pose.example1)
-robot.move_to_pose(target_pose=Pose.example2)
-robot.move_to_joint_pos(target=JointPosition.example1)
-robot.move_to_joint_pos(target=JointPosition.example2)
-robot.move_to_joint_pos(target=JointPosition.example3)
+robot.move_to(urpy.JointPosition(base=0.004, shoulder=-1.653, elbow=-1.247, wrist1=-1.78, wrist2=1.537, wrist3=-0.0))
+
+robot.move_to(target=Pose.example1)
+robot.move_to(target=Pose.example2)
+robot.move_to(target=JointPosition.example1)
+robot.move_to(target=JointPosition.example2)
+robot.move_to(target=JointPosition.example3)
 
 path = [
     urpy.PathPoint(Pose.example1),
