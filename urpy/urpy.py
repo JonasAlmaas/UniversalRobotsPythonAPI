@@ -246,12 +246,12 @@ class Pose:
     
     def lerp(self, other: Pose, percent: float) -> Pose:
         '''Returns a linear interpolated pose.'''
-        x = lerp(self.x, other.x, percent)
-        y = lerp(self.y, other.y, percent)
-        z = lerp(self.z, other.z, percent)
-        rx = lerp(self.rx, other.rx, percent)
-        ry = lerp(self.ry, other.ry, percent)
-        rz = lerp(self.rz, other.rz, percent)
+        x = round(lerp(self.x, other.x, percent), 1)
+        y = round(lerp(self.y, other.y, percent), 1)
+        z = round(lerp(self.z, other.z, percent), 1)
+        rx = round(lerp(self.rx, other.rx, percent), 1)
+        ry = round(lerp(self.ry, other.ry, percent), 1)
+        rz = round(lerp(self.rz, other.rz, percent), 1)
         return Pose(x, y, z, rx, ry, rz)
 
     def copy(self) -> Pose:
@@ -301,12 +301,12 @@ class JointPosition:
 
     def lerp(self, other: JointPosition, percent: float) -> Pose:
         '''Returns a linear interpolated pose.'''
-        base = lerp(self.base, other.base, percent)
-        shoulder = lerp(self.shoulder, other.shoulder, percent)
-        elbow = lerp(self.elbow, other.elbow, percent)
-        wrist1 = lerp(self.wrist1, other.wrist1, percent)
-        wrist2 = lerp(self.wrist2, other.wrist2, percent)
-        wrist3 = lerp(self.wrist3, other.wrist3, percent)
+        base = round(lerp(self.base, other.base, percent), 3)
+        shoulder = round(lerp(self.shoulder, other.shoulder, percent), 3)
+        elbow = round(lerp(self.elbow, other.elbow, percent), 3)
+        wrist1 = round(lerp(self.wrist1, other.wrist1, percent), 3)
+        wrist2 = round(lerp(self.wrist2, other.wrist2, percent), 3)
+        wrist3 = round(lerp(self.wrist3, other.wrist3, percent), 3)
         return JointPosition(base, shoulder, elbow, wrist1, wrist2, wrist3)
 
     def copy(self) -> JointPosition:
