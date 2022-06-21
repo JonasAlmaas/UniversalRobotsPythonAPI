@@ -9,6 +9,8 @@ import socket
 import argparse
 
 import logging
+
+from traitlets import Float
 from .rtde import rtde
 from .rtde import rtde_config
 
@@ -45,8 +47,6 @@ class UniversalRobot:
         if self._args.verbose:
             logging.basicConfig(level=logging.INFO)
 
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
     def set_accel(self, accel: float) -> None:
         '''Sets the acceleration for the robot.'''
         self._accel = accel
@@ -68,14 +68,13 @@ class UniversalRobot:
 
     def _send_to_robot(self, function_str: str) -> None:
         '''Sends a function string to the robot.'''
-        self._socket.connect((self._host, PORT_SEND))
-        self._socket.send(function_str.encode())
-        self._socket.close() 
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self._host, PORT_SEND))
+        s.send(function_str.encode())
+        s.close() 
 
     def move_to_pose(self, target_pose: Pose, movement_type: MovementType = MovementType.QUICKEST, wait: bool = True) -> None:
         '''Moves the robot to the desiered pose, waits before continuing if the 'wait' flag is set.'''
-        target_pose.to_m()
-
         if movement_type is MovementType.LINEAR:
             self._send_to_robot(target_pose.movel(self._accel, self._vel))
         elif movement_type is MovementType.QUICKEST:
@@ -85,8 +84,6 @@ class UniversalRobot:
             return
 
         if wait:
-            target_pose.to_mm()
-
             is_at_positon = False
             while not is_at_positon:
                 current_pose = self.get_pose()
@@ -106,38 +103,40 @@ class UniversalRobot:
                 if not is_at_positon:
                     time.sleep(0.1)
 
-    def move_path(self, path_points: List[PathPoint]) -> None:
+    def move_path(self, path_points: List[PathPoint], wait: bool = True) -> None:
         '''Given an array of PathPoints the robot moves smoothly between them with little delay. Waits before continuing.'''
-        self._socket.connect((self._host, PORT_SEND))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self._host, PORT_SEND))
 
+        function_str: str = "def path():\n"
+
+        # Create the function string
         for point in path_points:
-            # Get the correct function string
-            if isinstance(point, JointPosition):
-                function_str = point.target.movej()
+            if isinstance(point.target, JointPosition):
+                function_str = function_str + point.target.movej(self._accel, self._vel)
             else:
-                point.target.to_m()
                 if point.movement_type == MovementType.QUICKEST:
-                    function_str = point.target.movej()
+                    function_str = function_str + point.target.movej(self._accel, self._vel)
                 elif point.movement_type == MovementType.LINEAR:
-                    function_str = point.target.movel()
+                    function_str = function_str + point.target.movel(self._accel, self._vel)
+                else:
+                    print("[urpy][ERROR]: Unknown movement type.")
 
-            # Send the function string to the robot
-            self._socket.send(function_str.encode())
+        function_str += "end\n"     # End the script
+        function_str += "path()"    # Run the script
 
-            # Wait for the robot to complete the move
+        s.send(function_str.encode())
+        s.close()
+
+        # Wait for the robot to reach the last path position
+        if wait:
+            target = path_points[len(path_points) - 1].target
             move_done = False
             while not move_done:
-                if isinstance(point, JointPosition):
-                    current = self.get_joint_position()
+                if isinstance(target, JointPosition):
+                    move_done = target == self.get_joint_position()
                 else:
-                    point.target.to_mm()
-                    current = self.get_pose()
-
-                move_done = point.target == current
-                if not move_done:
-                    time.sleep(0.1)
-
-        self._socket.close() 
+                    move_done = target == self.get_pose()
 
     def get_pose(self) -> Pose:
         '''Get the robots correct pose as an instance of the Pose class.'''
@@ -209,6 +208,13 @@ class Pose:
         self.ry: float = round(ry, 2)
         self.rz: float = round(rz, 2)
 
+    def _get_in_m(self):
+        '''Returns pose in m. The robot needs meter space cordinates.'''
+        x = self.x / 1000.0
+        y = self.y / 1000.0
+        z = self.z / 1000.0
+        return x, y, z
+
     def to_m(self) -> None:
         '''Converts from mm to m.'''
         self.x = self.x / 1000.0
@@ -227,7 +233,8 @@ class Pose:
 
     def _get_undefined_move_command(self, a, v) -> str:
         '''Helper function for sending a pose to the robot.'''
-        return "p[" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v)
+        x, y, z = self._get_in_m()
+        return "p[" + str(x) + ", " + str(y) + ", " + str(z) + ", " + str(self.rx) + ", " + str(self.ry) + ", " + str(self.rz) + "],a=" + str(a) + ", v=" +str(v)
 
     def movej(self, a, v) -> str:
         '''Returns a function string for the pose.'''
@@ -251,8 +258,17 @@ class Pose:
         '''Returns a copy of the pose.'''
         return Pose(x=self.x, y=self.y, z=self.z, rx=self.rx, ry=self.ry, rz=self.rz)
 
-    def __eq__(self, other):
-        if (isinstance(other, Pose)):
+    def _kinda_equal(self, other: Pose, threshold: Float):
+        '''Returns true if the arm is within a threshold of other.'''
+        if isinstance(other, Pose):
+            x = (self.x + threshold >= other.x) and (self.x - threshold <= other.x)
+            y = (self.y + threshold >= other.y) and (self.y - threshold <= other.y)
+            z = (self.z + threshold >= other.z) and (self.z - threshold <= other.z)
+            return x and y and z
+        return False
+
+    def __eq__(self, other: Pose):
+        if isinstance(other, Pose):
             # return (self.x == other.x) and (self.y == other.y) and (self.z == other.z) and (self.rx == other.rx) and (self.ry == other.ry) and (self.rz == other.rz)
             return (self.x == other.x) and (self.y == other.y) and (self.z == other.z)
         return False
@@ -286,6 +302,18 @@ class JointPosition:
     def copy(self) -> JointPosition:
         '''Returns a copy of the joint position.'''
         return JointPosition(self.base, self.shoulder, self.elbow, self.wrist1, self.wrist2, self.wrist3)
+
+    def _kinda_equal(self, other: JointPosition, threshold: Float):
+        '''Returns true if the arm is within a threshold of other.'''
+        if isinstance(other, JointPosition):
+            base = (self.base + threshold >= other.base) and (self.base - threshold <= other.base)
+            shoulder = (self.shoulder + threshold >= other.shoulder) and (self.shoulder - threshold <= other.shoulder)
+            elbow = (self.elbow + threshold >= other.elbow) and (self.elbow - threshold <= other.elbow)
+            wrist1 = (self.wrist1 + threshold >= other.wrist1) and (self.wrist1 - threshold <= other.wrist1)
+            wrist2 = (self.wrist2 + threshold >= other.wrist2) and (self.wrist2 - threshold <= other.wrist2)
+            wrist3 = (self.wrist3 + threshold >= other.wrist3) and (self.wrist3 - threshold <= other.wrist3)
+            return base and shoulder and elbow and wrist1 and wrist2 and wrist3
+        return False
 
     def __eq__(self, other):
         if (isinstance(other, JointPosition)):
