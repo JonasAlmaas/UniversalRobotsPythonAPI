@@ -1,6 +1,9 @@
 # URPy ![version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 A module to make your life easier when communicating with a Universal Robot from python.
 
+## pip
+```pip install urpy```
+
 ## Download
 - [Latest release](https://github.com/JonasAlmaas/urpy/releases/latest)
 - [All releases](https://github.com/JonasAlmaas/urpy/releases)
