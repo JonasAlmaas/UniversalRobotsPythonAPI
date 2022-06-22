@@ -9,7 +9,8 @@ from pynput.mouse import Listener, Button
 p = os.path.abspath('.')
 sys.path.insert(1, p)
 
-from urpy import urpy
+import urpy
+
 
 robot = urpy.UniversalRobot("192.168.1.101")
 

@@ -10,7 +10,6 @@ import argparse
 
 import logging
 
-from traitlets import Float
 from .rtde import rtde
 from .rtde import rtde_config
 

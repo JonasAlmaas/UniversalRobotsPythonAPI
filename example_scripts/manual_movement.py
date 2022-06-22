@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(1, os.path.abspath('.'))
 
-from program.robot_interface.urpy import urpy
+import urpy
 
 
 robot = urpy.UniversalRobot("192.168.1.101")
